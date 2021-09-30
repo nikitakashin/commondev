@@ -1,0 +1,8 @@
+{
+  "locales": ["ru", "en", "fr"],
+  "defaultLocale": "ru",
+  "pages": {
+    "*": ["common"],
+    "/url_shortener": ["url_shortener"]
+  }
+}
