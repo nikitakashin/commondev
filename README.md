@@ -1,30 +1,54 @@
-# Internationalized Routing
+# commondev
 
-This example shows how to create internationalized pages using Next.js and the i18n routing feature. It shows a normal page, a non-dynamic `getStaticProps` page, a dynamic `getStaticProps` page, and a `getServerSideProps` page.
+**Commonwealth of Developers** — open-source coding agent.
 
-For further documentation on this feature see the [Internationalized Routing docs](https://nextjs.org/docs/advanced-features/i18n-routing).
+> Status: concept undefined · research in progress
 
-## Preview
+## What this is
 
-Preview the example live on [StackBlitz](http://stackblitz.com/):
+`commondev` is an open-source AI coding agent. It's being built as a
+community effort — a "commonwealth" of developers rather than a single
+vendor's product. The goal: a coding agent that is transparent, extensible,
+and genuinely owned by the people who use it.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/vercel/next.js/tree/canary/examples/i18n-routing)
+## Where we are right now
 
-## Deploy your own
+The project is in **research / pre-architect** phase. The core question on
+the table:
 
-Deploy the example using [Vercel](https://vercel.com?utm_source=github&utm_medium=readme&utm_campaign=next-example):
+> Build from scratch, or build on top of the [Pi SDK](https://github.com/pi-coding-agent/pi)?
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/git/external?repository-url=https://github.com/vercel/next.js/tree/canary/examples/i18n-routing&project-name=i18n-routing&repository-name=i18n-routing)
+Both paths are being investigated. No decision has been made yet.
 
-## How to use
+- **From scratch** — full control over the agent loop, tool model, and
+  protocol. More work, but no inherited abstractions or vendor lock-in.
+- **On Pi SDK** — faster to a working agent, but inherits Pi's architecture
+  decisions and its surface area.
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init) or [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/) to bootstrap the example:
+This README (and the `docs/` folder) will track the outcome of that
+research and the reasoning behind whatever path we choose.
 
-```bash
-npx create-next-app --example i18n-routing i18n-app
-# or
-yarn create next-app --example i18n-routing i18n-app
-```
+## Repository layout
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
-# Commondev.old
+| Path           | Visibility | Purpose                                  |
+| -------------- | ---------- | ---------------------------------------- |
+| `docs/`        | public     | Public documentation for the project    |
+| `docs_internal/`| private   | Internal notes, research scratchpad     |
+
+`docs_internal/` is git-ignored — it's for working drafts, meeting notes,
+and things we don't want published yet.
+
+## Contributing
+
+This is an open-source project. Contributions are welcome.
+
+1. Open an issue describing what you want to change.
+2. Fork, branch, make your change.
+3. Push a PR referencing the issue.
+
+Please keep commits atomic and add a short explanation of the *why*, not just
+the *what*.
+
+## License
+
+TBD — see `docs/license.md` once decided.
