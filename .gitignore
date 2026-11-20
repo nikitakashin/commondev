@@ -1,2 +1,4 @@
 # Private/internal documentation
 docs_internal/
+.DS_Store
+__pycache__/
