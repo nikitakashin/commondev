@@ -1,20 +1,24 @@
-# commondev для macOS
+# commondev for macOS
 
-В этой папке находятся SwiftUI-приложение, агентное ядро и встроенный шлюз бесплатных моделей. Нажмите «Новый чат» и при необходимости назначьте папку проекта в меню под полем ввода. В чате без папки команды запускаются из домашней папки и файловые инструменты принимают абсолютные пути. Команды и правки требуют подтверждения. Модель и режим работы выбираются в соседнем меню. Доступность бесплатных моделей зависит от сети и внешних провайдеров.
+This directory contains the SwiftUI app, the agent core, and the bundled FreeLLMAPI gateway. Start a chat with Cmd+N and use the folder picker above the message field to choose a project. In a chat without a project folder, commands start in your home directory and file tools accept absolute paths. By default, the agent asks before editing files or running shell commands. Use the model menu beside the message field to choose a model and work mode.
 
-Приложение рассчитано на macOS 13 и новее. Готовая локальная сборка содержит FreeLLMAPI и Node.js: пользователю бесплатного режима не нужно отдельно устанавливать шлюз или вводить ключ. Для выполнения команд проекта могут понадобиться соответствующие инструменты разработки, например Swift для `swift test`.
+## Installation
 
-Для установки тестового DMG откройте образ и перетащите приложение в папку «Программы». Запуск копии прямо из защищённой папки «Документы» может вызвать системный запрос доступа macOS. На другом Mac установка и первый запуск этой сборки пока не проверены.
+The app requires macOS 13 or later. The published 0.1 disk image is for Apple silicon. Open the DMG, drag Commondev.app to Applications, and launch it from there. Running the app directly from a protected folder such as Documents may trigger a macOS privacy prompt. Installation and first launch on a separate clean Mac still need testing.
 
-Для собственного endpoint в настройках можно включить отправку `reasoning_effort`, если сервер и выбранная модель поддерживают этот параметр. По умолчанию он выключен; при смене адреса или модели настройка сбрасывается. Уровню XHigh соответствует значение `high`, а дополнительный бюджет остаётся на стороне агента.
+The app bundles FreeLLMAPI and Node.js. The free model gateway needs network access to prepare its catalog on first launch. Model availability depends on the upstream providers. Project commands may need additional development tools, such as Swift for `swift test`.
 
-Для Harness² ответ собственного endpoint должен указывать фактическую модель. Если сервер не возвращает заголовок маршрута, эксперимент привязывается к настроенному URL и модели; определить смену скрытого провайдера за таким сервером приложение не сможет.
+## Custom models and file tools
 
-Агент читает большие UTF-8 файлы частями. Встроенная правка `replace_text` пока работает с файлами размером до 1 МБ; для большего файла агент может предложить другой способ, который также потребует подтверждения пользователя.
+If your endpoint and model support `reasoning_effort`, you can enable it in Settings. The setting defaults to off and resets when you change the endpoint or model. X-High sends `high` to the provider and gives the agent a larger local budget.
 
-## Локальная сборка
+Harness² uses the model identity returned by the endpoint. If the server omits the routing header, Harness² associates the experiment with the configured URL and model. A provider change behind that endpoint may go undetected.
 
-Нужны Xcode Command Line Tools, Git и доступ к сети. Запускайте команды из корня репозитория:
+The agent reads large UTF-8 files in chunks. The built-in `replace_text` tool supports files up to 1 MB. For a larger file, the agent can propose another editing method and request approval.
+
+## Build locally
+
+Install Xcode Command Line Tools and Git. Building the gateway requires network access. Run these commands from the repository root using fresh output paths.
 
 ```sh
 bash macos/scripts/build-gateway.sh "$PWD/macos/.build/FreeLLMAPI"
@@ -22,42 +26,38 @@ bash macos/scripts/build-app.sh "$PWD/macos/.build/Commondev.app"
 open "$PWD/macos/.build/Commondev.app"
 ```
 
-Оба пути результата должны отсутствовать до запуска: скрипты не перезаписывают существующие каталоги. Для повторной сборки укажите новые пути. При наличии ранее собранного шлюза его можно переиспользовать:
+Each build script requires its destination to be absent. To reuse an existing gateway, set `COMMONDEV_GATEWAY_DIR` and give the app a new destination.
 
 ```sh
 COMMONDEV_GATEWAY_DIR="$PWD/macos/.build/FreeLLMAPI" \
   bash macos/scripts/build-app.sh "$PWD/macos/.build/Commondev-next.app"
 ```
 
-Сборка шлюза использует закреплённую ревизию FreeLLMAPI и Node.js 22, проверяя контрольную сумму загружаемого Node. Шлюз и приложение собираются для архитектуры машины, на которой запущены скрипты; универсальный бинарник они не создают.
+The gateway build pins the FreeLLMAPI revision and the Node.js 22 version and verifies the Node.js download checksum. Both scripts build for the host architecture. The app defaults to an optimized release build targeting macOS 13. Set `COMMONDEV_BUILD_CONFIGURATION=debug` for a debug build. Before packaging, the script checks the architecture of the bundled Node.js executable and loads the native SQLite and sharp modules. If these checks fail, rebuild the gateway for the target Mac.
 
-По умолчанию приложение собирается в оптимизированной конфигурации `release` с минимальной версией macOS 13. Для отладочной сборки можно передать `COMMONDEV_BUILD_CONFIGURATION=debug`. Скрипт проверяет архитектуру встроенного Node и локально загружает нативные зависимости SQLite и sharp до создания приложения: неполный или несовместимый шлюз нужно пересобрать для текущей машины.
+## Signing and third-party notices
 
-Получившееся приложение подписано локальной ad-hoc подписью. Это удобно для разработки, но не подпись Developer ID и не нотарификация Apple: на другом Mac Gatekeeper может заблокировать запуск. Установку и работу на отдельном чистом Mac ещё необходимо проверить перед распространением. Лицензии FreeLLMAPI и Node включены в каталог `Contents/Resources/FreeLLMAPI` внутри приложения; перед публичным релизом также нужно определить лицензию commondev и проверить условия остальных включённых зависимостей.
+The build script applies an ad hoc signature. The 0.1 release has not been notarized by Apple, so Gatekeeper may block its first launch on another Mac. The FreeLLMAPI and Node.js licenses are in `Contents/Resources/FreeLLMAPI` inside the app. Selection of the commondev license and review of third-party distribution terms are still pending.
 
-Для инвентаризации метаданных зависимостей в готовой сборке можно выполнить:
-
-```sh
-python3 macos/scripts/inventory-licenses.py /путь/к/Commondev.app/Contents/Resources/FreeLLMAPI > inventory.json
-```
-
-Новые сборки шлюза сохраняют в `server-metafile.json` список входов esbuild и в `server-input-inventory.json` — их пакеты, объявленные лицензии, найденные файлы уведомлений, внешние импорты и SHA-256 серверного bundle. Общий инвентарь сверяет SHA-256 с фактическим `server.mjs`; старые сборки без этих данных помечаются как `unavailable` и требуют пересборки для точного перечня входов.
-
-Инвентарь показывает метаданные и находящиеся рядом файлы лицензий, но не проверяет условия распространения и состав вложенных нативных библиотек. В проверенной arm64-сборке есть зависимости с лицензиями LGPL и MPL и пакеты без собственного файла лицензии; перед публикацией нужно отдельно проверить состав, уведомления и соответствующие исходники.
-
-Для проверенного бинарника sharp-libvips 1.3.2 сборка дополнительно включает в `Contents/Resources/ThirdParty` оригинальные уведомления upstream и лицензию скриптов упаковки с закреплённым источником. Это частичный комплект: он не заменяет тексты лицензий встроенных библиотек и проверку соответствующих исходников.
-
-Черновик уведомлений для этой проверки собирается командой:
+To inventory the dependencies in a packaged app, run the following command.
 
 ```sh
-python3 macos/scripts/draft-notices.py /путь/к/Commondev.app/Contents/Resources/FreeLLMAPI > THIRD_PARTY_NOTICES.draft.txt
+python3 macos/scripts/inventory-licenses.py /path/to/Commondev.app/Contents/Resources/FreeLLMAPI > inventory.json
 ```
 
-Файл помечен как черновик: он не заменяет проверку отсутствующих текстов и условий распространения.
+New gateway builds record esbuild inputs in `server-metafile.json`. The companion `server-input-inventory.json` lists the packages, declared licenses, notice files, external imports, and server bundle SHA-256. The inventory script verifies that hash against `server.mjs`. It reports `unavailable` for older builds that lack these records. Rebuild those gateways to obtain an exact input list.
 
-Сессии, данные шлюза и его журнал сохраняются в `~/Library/Application Support/Commondev`. На первом запуске бесплатного режима нужно дождаться подготовки каталога моделей; для работы требуется сеть.
+The inventory covers package metadata and nearby license files. The audited arm64 build includes LGPL and MPL dependencies and several packages without their own license files. Reviewing a distribution also requires identifying the native components, their notices, and their corresponding sources.
 
-## Проверки при разработке
+For the verified sharp-libvips 1.3.2 binary, the app includes the upstream notices and the packaging scripts' license in `Contents/Resources/ThirdParty`, with links to the pinned revision. The libraries in that binary have their own license and source requirements.
+
+Generate a working copy of the collected notices for review with the following command. Review missing texts, native components, and source requirements before using the draft for distribution.
+
+```sh
+python3 macos/scripts/draft-notices.py /path/to/Commondev.app/Contents/Resources/FreeLLMAPI > THIRD_PARTY_NOTICES.draft.txt
+```
+
+## Development checks
 
 ```sh
 swift test --package-path macos
@@ -65,22 +65,24 @@ bash macos/scripts/verify-demo.sh
 python3 -m unittest discover -s macos/Tests/ScriptTests -v
 ```
 
-`verify-demo.sh` копирует учебный проект `Fixtures/FailingCalculator` во временный каталог и проверяет отказ от правки и подтверждённое исправление с повторным `swift test`. Его CLI использует заранее заданные действия и не обращается к модели. Для ручного запуска создайте копию учебного проекта и выполните:
+The demo copies `Fixtures/FailingCalculator` to a temporary directory. It checks that declining a proposed edit leaves the file intact and that approving the fix makes the next `swift test` pass. The CLI uses a deterministic provider for this scenario. To run it manually, make a copy of the fixture first.
 
 ```sh
-swift run --package-path macos commondev-cli /путь/к/копии/FailingCalculator
+swift run --package-path macos commondev-cli /path/to/copy/FailingCalculator
 ```
 
-Потоковый запрос к уже работающему OpenAI-совместимому endpoint можно проверить отдельно:
+To test one streaming request against an existing OpenAI-compatible endpoint, use the server's port and model name. Set `COMMONDEV_API_KEY` if the server requires a key.
 
 ```sh
-swift run --package-path macos commondev-model http://127.0.0.1:8080/v1/chat/completions auto:fast "Привет"
+swift run --package-path macos commondev-model http://127.0.0.1:8080/v1/chat/completions auto:fast "Hello"
 ```
 
-Порт и имя модели должны соответствовать серверу. При необходимости задайте ключ через `COMMONDEV_API_KEY`. Эта команда отправляет один запрос; живой агентный цикл используется приложением и доступен отдельно через `commondev-live`.
+For a full agent run, use the app or `commondev-live`.
 
-## Сессии и обновление со старой сборки
+## Sessions and upgrades
 
-Приложение открывает одно окно и удерживает блокировку хранилища на время работы. Повторный запуск активирует работающий экземпляр. При обновлении сначала закройте старую версию. При первом сохранении чаты из прежнего `sessions.json` переносятся в отдельные файлы в папке `Sessions`, затем приложение записывает индекс. Обе части хранятся в `~/Library/Application Support/Commondev/`.
+The app stores sessions, gateway data, and gateway logs in `~/Library/Application Support/Commondev/`. One process holds the store lock while the app is running. Opening the app again brings its existing window forward. Quit the old version before opening an upgrade.
 
-Ключ собственного сервера привязан в Keychain к протоколу, хосту и порту. После перехода с версии с общим ключом введите его один раз для нужного сервера. Если поменять подключение или модель, уже набранная очередь остановится. Можно вернуться к прежним настройкам, явно выбрать новое подключение для первого сообщения или вернуть его в пустой черновик. Сообщения старой очереди тоже требуют выбора подключения.
+On the first save after upgrading from the older storage format, the app writes each chat from `sessions.json` to its own file in `Sessions/`, then writes the new index.
+
+The macOS Keychain stores custom API keys by scheme, host, and port. When upgrading from a build that used a shared key, enter the key once for the intended server. Changing the connection or model pauses queued messages. You can switch back and resume, explicitly send the first queued message through the new connection, or return it to an empty draft. Queued messages from older versions also require a connection choice.
